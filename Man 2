@@ -114,6 +114,46 @@ def insert_alert(conn, incident):
         print(f"Database error: {e}")     
 main()
 
+#Noter til koden: 
 
+Imports og konfiguration
+
+1. `requests` bruges til at sende HTTP kald til API'et — GET og POST requests.
+2. `sqlite3` bruges til at oprette og arbejde med en lokal SQLite database.
+3. `BASE_URL`, `EMAIL` og `DB_FILE` samler vores konfiguration ét sted, så vi kun skal ændre én linje hvis noget ændrer sig.
+
+get_token()
+
+4. Vi sender vores email som JSON til API'et.
+5. Tokenen bruger vi som adgangskort på alle fremtidige requests, så API'et ved vi har lov til at hente data.
+6. Hvis API'et ikke svarer, fanger vores try/except fejlen og returnerer `None` i stedet for at crashe — ligesom at lægge på når ingen svarer telefonen.
+
+setup_database()
+
+7. En cursor er et redskab vi bruger til at udføre SQL kommandoer på databasen.
+8. `CREATE TABLE IF NOT EXISTS` opretter tabellen, men kun hvis den ikke allerede eksisterer — så vi ikke overskriver eksisterende data.
+9. `conn.commit()` gemmer ændringerne permanent i databasen.
+
+fetch_incidents_page()
+
+10. `$top=100` fortæller API'et at vi vil have 100 incidents ad gangen — det er maksimum.
+11. `$skip` fortæller API'et hvor mange incidents den skal springe over — bruges til at bladre gennem siderne.
+12. Vi sender tokenen med i headeren som bevis på at vi har adgang.
+
+fetch_all_incidents()
+
+13. Vi bruger `while True` fordi vi ikke ved præcis hvor mange sider der er — den kører indtil vi kalder `break`.
+14. Når `@odata.nextLink` ikke er i svaret, er vi på den sidste side og kalder `break` for at stoppe løkken.
+15. `time.sleep(1.5)` tilføjer en pause mellem requests så vi ikke rammer API'ets rate limit.
+
+insert_alert()
+
+16. Vi bruger `?` placeholders så specialtegn ikke ødelægger SQL koden — det beskytter også mod SQL injection.
+17. `conn.rollback()` fortryder alle ændringer hvis noget går galt, så databasen ikke bliver korrupt.
+
+main()
+
+18. `main()` styrer hele programmet og kalder alle funktioner i den rigtige rækkefølge.
+19. Rækkefølgen er: hent token → opret database → sæt database op → hent incidents → gem i database.
 
 
